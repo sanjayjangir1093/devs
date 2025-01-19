@@ -3,10 +3,22 @@ FROM node:18.19.0 as build
 
 WORKDIR /app
 
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Install dependencies
 RUN npm install
 
+# Copy the rest of the application code
 COPY . .
 
+# Build the Angular application
 RUN npm run build --prod
+
+# Use Nginx to serve the application
+FROM nginx:latest
+COPY --from=build /app/dist/my-angular-app /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
