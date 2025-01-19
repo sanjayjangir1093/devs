@@ -1,38 +1,31 @@
-name: CI/CD Pipeline
+name: Build and Push Docker Image to ECR
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # Change this to your default branch if different
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
         with:
-          node-version: '18'  # Specify the Node.js version
+          registry-type: private
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test -- --watch=false
-
-      - name: Build the application
-        run: npm run build --prod
-
-      - name: Deploy to GitHub Pages (optional)
-        if: github.ref == 'refs/heads/main'
+      - name: Create ECR Repository
         run: |
-          npm install -g angular-cli-ghpages
-          npx angular-cli-ghpages --dir=dist/my-angular-app
+          aws ecr create-repository --repository-name ${{ secrets.ECR_REPOSITORY }} --region ${{ secrets.AWS_REGION }} || echo "Repository already exists"
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
