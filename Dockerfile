@@ -17,7 +17,8 @@ RUN npm run build --prod
 
 # Use Nginx to serve the application
 FROM nginx:latest
-COPY --from=build /app/dist/hello-world-by-sanjay /usr/share/nginx/html
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/dist/hello-world-by-sanjay /usr/share/nginx/html/index.html
 
 EXPOSE 80
 
